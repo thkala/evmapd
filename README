@@ -1,0 +1,108 @@
+evmapd - An input event remapping daemon for Linux
+
+
+
+Contents:
+
+    1. Introduction
+    2. Platforms
+    3. Setup
+	3.1. Compilation
+	3.2. Installation
+	3.3. Running
+    4. Credits
+    5. License
+    6. Authors
+
+
+1. Introduction
+
+evmapd is a daemon for the remapping of input events on Linux. It uses the evdev
+interface to access an input device, such as a keyboard or a joystick, and then
+the uinput interface to create a new, virtual device to which the altered events
+are relayed.
+
+It can be used to remap keys, buttons and axis, or to perform some more complex
+translations between different event types, such as remapping the POV switches
+of a joystick to sets of buttons.
+
+In addition it incorporates an auto-calibration algorithm for ABS axis events,
+which is relatively functional and may be useful for some joystick owners.
+
+
+
+2. Platforms
+
+Currently only the following platforms are supported:
+
+* Linux 2.6.x
+
+evmapd may work on Linux 2.4.x, but it has not been tested.
+
+
+
+3. Setup
+
+3.1. Compilation
+
+A simple call to `make' is normally all you will need to compile evmapd:
+
+$ make
+
+You can override the CFLAGS variable to provide optimisation flags e.t.c. The
+DEBUG variable can be used to enable debugging - if you are using gcc, setting
+DEBUG to "-g" would probably do.
+
+
+3.2. Installation
+
+First verify with `make -n install' the installation paths. By default, the
+installation prefix is /usr/local and the evmapd daemon binary is installed in
+$(prefix)/sbin. You can set the prefix and bindir variables to override these
+defaults. Then run `make install' as root to perform the actual installation:
+
+# make install
+
+
+3.3. Running
+
+You will need the Linux kernel evdev and uinput interfaces to run evmapd. If
+they have been compiled as modules, the following commands will ensure that
+they are available:
+
+# modprobe evdev
+# modprobe uinput
+
+In most cases you will have to be the root user to access the source device.
+Run `evmapd -h' to see the various command line options. All you have to do
+in most cases is:
+
+$ evmapd -g -i <source device> [remapping options]
+
+Note that all parameter arguments are numeric event codes - you cannot use
+symbolic names. The evtest program can be used to determine the values that
+correspond to each event.
+
+You can create udev rules to automatically launch evmapd when some specific
+devices are plugged in.
+
+
+
+4. Credits
+
+- Vojtech Pavlik, Rene van Paassen for the evtest program
+
+
+
+5. License
+
+evmapd is released under the GNU General Public License version 2. The full text
+of the license can be found in the COPYING file that should be included in the
+evmapd distribution.
+
+
+
+6. Authors
+
+Original author:
+	Theodoros V. Kalamatianos <nyb@users.sourceforge.net>

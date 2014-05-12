@@ -1,0 +1,27 @@
+1. Items in the ToDo list:
+
+* Testing
+
+* Write more documentation - a man page would be nice...
+
+* Rework the code. Right now it's a mess. A real mess. The kind you don't
+  really want to get into.
+
+* More testing
+
+* Configuration file for the mapping settings (?)
+
+* More error checks - perhaps even some input validation
+
+* A lot more testing
+
+* More comments in the code
+
+* And some more testing
+
+* Get user feedback, perhaps some real use examples
+
+* Charge $0.01 for every input event that passes through evmapd and become
+  a billionaire.
+
+* And, yes, you guessed it, more testing...

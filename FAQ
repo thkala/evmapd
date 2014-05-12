@@ -1,0 +1,95 @@
+* Why evmapd ?
+
+I own a rather flaky joystick that is so unstable that jscal can't help. Not
+only does it have different ranges every time I connect it, but its values
+drift badly with time and sometimes it even produces random values that make
+no sense. To handle this I originally wrote the kjscal Linux kernel module
+that performs on-the-fly automatic calibration of the joystick...
+
+...and as time passed and newer kernels came, kjscal slowly became a liability.
+It had always been a rather crude hack - and never really aspired to be anything
+more - but it was difficult to setup and while the one time I needed to alter it
+to accomodate a new kernel was just a nuissance, it made it clear that kjscal's
+functionality would be better off living in userspace.
+
+Besides, I started trying out Windows games on my Linux box using WINE and I
+needed a way to remap joystick POV switches to key presses, as most of these
+games expect a POV switch to be represented by a set of keys rather than a set
+of axis, as Linux (and WINE) provide.
+
+I could probably rewrite kjscal to do that as well, but I decided to start from
+scratch and work in userspace. I already had some experience with a very simple
+daemon that would make a virtual joystick out of my laptop's trackpoint. So I
+wrote a daemon to handle all these remappings, added the auto-calibration code
+and made it almost fully configurable. And evmapd was born...
+
+
+* What about other alternatives ?
+
+If there are any, I never found them...
+
+
+* What does the name mean ?
+
+EVent (re)MAPing Daemon... I know, I know...
+
+
+* Does it work ?
+
+It seemed fine during some initial testing, but not everything was tested. User
+feedback is definitely required.
+
+
+* How does it work ?
+
+You'll have to read the code. I'll give a free copy of the next evmapd version
+to anyone that can understand it (with proof - documentation would be nice :-).
+
+
+* Are there any security issues ?
+
+There shouldn't be, but I can't prove it...
+
+
+* Is it dangerous ?
+
+Not unless you mess up your keyboard mappings so bad that you won't be able to
+login. Keep in mind that most high level input handlers (kbd, mouse e.t.c) will
+automatically attach to any new device, which might become an issue if
+
+a. you don't grab (-g) the original device and get duplicate events
+b. you remap things that should have been left alone
+c. you forget where you remapped the Return key
+
+
+* I found a bug !
+
+Good! Now report it at <nyb@users.sourceforge.net>... or even better fix it and
+send a patch!
+
+
+* How can I help ?
+
+- Test it.
+- Report any bugs.
+- Ideas, suggestions e.t.c. are welcome. Patches even more!
+- Occasionally you may drop a line to say that it worked for you. Positive
+  feedback is just as important.
+
+
+* I don't like your coding style
+
+I don't like yours either.
+
+
+* Who wrote it ?
+
+Me, Theodoros Kalamatianos, a student at the department of Electric and Computer
+Engineering of the National Technical University of Athens. For purposes related
+to evmapd I may be reached at <nyb@users.sourceforge.net>.
+
+
+* Under what license is it released ?
+
+Naturally, the GNU General Public License. The full text of the GPL is included
+in the evmapd tarball.
