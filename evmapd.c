@@ -42,9 +42,9 @@
 #define msg(m, ...)		info("%s: " m, argv0, ##__VA_ARGS__)
 
 #define RETERR(c, E, r, m, ...)	if (c) { \
-					int e = errno; \
+					int e = (E)?(r):(errno); \
 					msg(m ": %s\n", ##__VA_ARGS__ , strerror(e)); \
-					return (E)?(r):e; \
+					return e; \
 				}
 #define RETERN(c, m, ...)	RETERR(c, 0, 0, m, ##__VA_ARGS__)
 
@@ -728,7 +728,7 @@ int main(int argc, char **argv)
 	OSETBIT(SW);
 
 	ret = write(ofp, &uodev, sizeof(uodev));
-	RETERR(ret < sizeof(uodev), ret >= 0, EIO, "Unable to configure output device %s", odev);
+	RETERR(ret < (int)(sizeof(uodev)), ret >= 0, EIO, "Unable to configure output device %s", odev);
 	OSET(DEV_CREATE, NULL);
 
 
@@ -751,10 +751,10 @@ int main(int argc, char **argv)
 
 
 #define _RCV			ret = read(ifp, &ev, sizeof(ev)); \
-				RETERR(ret < sizeof(ev), ret >= 0, EIO, "Unable to receive event from %s", idev);
+				RETERR(ret < (int)(sizeof(ev)), ret >= 0, EIO, "Unable to receive event from %s", idev);
 
 #define _SND			ret = write(ofp, &ev, sizeof(ev)); \
-				RETERR(ret < sizeof(ev), ret >= 0, EIO, "Unable to send event to %s", odev); \
+				RETERR(ret < (int)(sizeof(ev)), ret >= 0, EIO, "Unable to send event to %s", odev); \
 				if (ev.type == EV_KEY) SET(rbits[EV_KEY], ev.code, ev.value);
 
 #if DEBUG

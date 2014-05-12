@@ -1,3 +1,8 @@
+Wed Jul  4 13:48:18 EEST 2007 - Theodoros V. Kalamatianos <nyb@users.sourceforge.net>
+	* Release 0.0.2
+	* Fixed signed/unsigned comparisons in the error handling paths
+	* Always present a proper error message
+
 Tue Jul  3 12:01:44 EEST 2007 - Theodoros V. Kalamatianos <nyb@users.sourceforge.net>
 	* Initial testing release (0.0.1)
 
