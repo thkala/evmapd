@@ -22,6 +22,10 @@
 
 
 #include <cfg+.h>
+
+#define CFG_MV CFG_MULTI
+#define CFG_MS CFG_MULTI_SEPARATED
+
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/input.h>
@@ -60,7 +64,7 @@ static char *argv0, *idev = NULL, *pidfile = NULL;
 
 static int ifp = -1, ofp = -1;
 static int *kkm = NULL, *krm = NULL, *kam = NULL, *rkm = NULL, *rrm = NULL;
-static int *ram = NULL, *akm = NULL, *arm = NULL, *aam = NULL, *nm = NULL;
+static int *ram = NULL, *akm = NULL, *arm = NULL, *aam = NULL, **nm = NULL;
 
 #define ARR(a, c, x, y)		((a)[((x) * (c)) + (y)])
 
@@ -111,17 +115,17 @@ static int write_pid() {
 	return 0;
 }
 
-static void rfree(char **c)
+static void rfree(void **v)
 {
 	int i;
 
-	if (c == NULL)
+	if (v == NULL)
 		return;
 
-	for (i = 0; c[i] != NULL; ++i)
-		free(c[i]);
+	for (i = 0; v[i] != NULL; ++i)
+		free(v[i]);
 
-	free(c);
+	free(v);
 }
 
 /* Allow SIGTERM to cause graceful termination */
@@ -153,7 +157,7 @@ void on_term(int s)
 	cfree(akm);
 	cfree(arm);
 	cfree(aam);
-	cfree(nm);
+	rfree((void **)nm);
 
 	if (pidfile != NULL) {
 		unlink(pidfile);
@@ -224,7 +228,7 @@ static int str_int(char **s, int **r, char *conv, int col)
 
 #define STRINT(s, r, conv, col)	ret = str_int(s, &r, conv, col); \
 				RETERN(ret < 0, "String array conversion failed"); \
-				rfree(s);
+				rfree((void **)s);
 
 
 
@@ -263,8 +267,10 @@ static int str_int(char **s, int **r, char *conv, int col)
 				"        --relconf <default-rel-min>,<default-rel-max>\n" \
 				"\n" \
 				"    ABS event normalisation options:\n" \
-				"        --norm <abs>\n" \
+				"        --norm <abs>[,<abs>...]\n" \
 				"        --normconf <ignore>[,<range>[,<rst>[,<spike>[,<min-spike>]]]]\n" \
+				"\n" \
+				"        <abs>       Input axis to normalise.\n" \
 				"\n" \
 				"        <ignore>    Number of initial events to ignore. Avoids\n" \
 				"                    confusing the normalisation code when the\n" \
@@ -308,14 +314,14 @@ static int usage(int r)
 
 #if DEBUG
 #define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s (%i)", idev, __LINE__)
+				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ") [%i]", idev, __LINE__)
 #define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s (%i)", odev, __LINE__)
+				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ") [%i]", odev, __LINE__)
 #else
 #define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s", idev)
+				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ")", idev)
 #define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s", odev)
+				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ")", odev)
 #endif
 
 #define OSETBIT(t)		for (i = 0; i < t##_MAX; ++i) \
@@ -387,20 +393,20 @@ int main(int argc, char **argv)
 		{"odev",	'o',	NULL, CFG_STR,		(void *) &odev,		0},
 		{"pidfile",	'p',	NULL, CFG_STR,		(void *) &pidfile,	0},
 
-		{"key-key",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &kkmap,	0},
-		{"key-rel",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &krmap,	0},
-		{"key-abs",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &kamap,	0},
-		{"rel-key",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &rkmap,	0},
-		{"rel-rel",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &rrmap,	0},
-		{"rel-abs",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &ramap,	0},
-		{"abs-key",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &akmap,	0},
-		{"abs-rel",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &armap,	0},
-		{"abs-abs",	0,	NULL, CFG_STR+CFG_MULTI,(void *) &aamap,	0},
+		{"key-key",	0,	NULL, CFG_STR+CFG_MV,	(void *) &kkmap,	0},
+		{"key-rel",	0,	NULL, CFG_STR+CFG_MV,	(void *) &krmap,	0},
+		{"key-abs",	0,	NULL, CFG_STR+CFG_MV,	(void *) &kamap,	0},
+		{"rel-key",	0,	NULL, CFG_STR+CFG_MV,	(void *) &rkmap,	0},
+		{"rel-rel",	0,	NULL, CFG_STR+CFG_MV,	(void *) &rrmap,	0},
+		{"rel-abs",	0,	NULL, CFG_STR+CFG_MV,	(void *) &ramap,	0},
+		{"abs-key",	0,	NULL, CFG_STR+CFG_MV,	(void *) &akmap,	0},
+		{"abs-rel",	0,	NULL, CFG_STR+CFG_MV,	(void *) &armap,	0},
+		{"abs-abs",	0,	NULL, CFG_STR+CFG_MV,	(void *) &aamap,	0},
 
 		{"absconf",	0,	NULL, CFG_STR,		(void *) &acfg,		0},
 		{"relconf",	0,	NULL, CFG_STR,		(void *) &rcfg,		0},
 
-		{"norm",	0,	NULL, CFG_INT+CFG_MULTI,(void *) &nm,		0},
+		{"norm",	0,	NULL, CFG_INT+CFG_MS,	(void *) &nm,		0},
 		{"normconf",	0,	NULL, CFG_STR,		(void *) &ncfg,		0},
 
 		CFG_END_OF_LIST
@@ -508,7 +514,7 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < EV_MAX; ++i) {
 		if GET(ibits[0], i) {
-			ioctl(ifp, EVIOCGBIT(i, KEY_MAX), ibits[i]);
+			ioctl(ifp, EVIOCGBIT(i, LEN(long, KEY_MAX) * sizeof(long)), ibits[i]);
 
 			if (i == EV_ABS) {
 				for (j = 0; j < ABS_MAX; ++j) {
@@ -555,6 +561,13 @@ int main(int argc, char **argv)
 					info("\t\t%2d)  Min:%6d   Max:%6d   Fuzz:%6d   Flat:%6d\n", i,
 						uidev.absmin[i], uidev.absmax[i], uidev.absfuzz[i], uidev.absflat[i]);
 			info("\n");
+		}
+
+		if (nm != NULL) {
+			info("\t\tNormalised ABS axis:");
+			for (i = 0; nm[i] != NULL; ++i)
+				info(" %i", *(nm[i]));
+			info("\n\n");
 		}
 
 		listbits(ibits, EV_MSC, MSC_MAX, "MSC");
@@ -692,6 +705,7 @@ int main(int argc, char **argv)
 		for (i = 1; i < EV_MAX; ++i)
 			if GET(obits[0], i)
 				info(" %i", i);
+
 		info("\n\n");
 
 		listbits(obits, EV_KEY, KEY_MAX, "KEY");
@@ -879,8 +893,8 @@ int main(int argc, char **argv)
 
 				if (nm != NULL) {
 					/* Auto-calibration */
-					for (i = 0; nm[i] != -1; ++i)
-						if (nm[i] == ev.code) {
+					for (i = 0; nm[i] != NULL; ++i)
+						if (*(nm[i]) == ev.code) {
 							if (AC[RDY]) {
 								/* Spike protection */
 								if ((nspk > 0) && (nspkmin < irng)) {

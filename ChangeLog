@@ -1,3 +1,19 @@
+Sat Apr 25 12:56:49 EEST 2009 - Theodoros V. Kalamatianos <nyb@users.sourceforge.net>
+	* Release 0.0.3
+	* --norm now accepts multiple comma-separated arguments
+	* --verbose now reports any input axis that will be normalised
+	* Fixed broken argument handling for the --norm parameter which rendered
+	  the normalisation code useless and often caused a segmentation fault.
+	  Apparently, the sample code in the the libcfg+ documentation is broken
+	  as well, despite the actual documentation being correct, if only a bit
+	  too short. No idea how this rather embarassing issue slipped through,
+	  although its manifestation seems to be partly platform and/or compiler
+	  dependent. Did I mention that libcfg+ could really use some better (as
+	  in 'not broken') example code? (reported by Dave Ahlswede)
+	* More verbose ioctl() error messages
+	* Fixed incorrect KEY_MAX usage in ioctl(EVIOCGBIT) call, which would
+	  produce a warning message by the kernel
+
 Wed Jul  4 13:48:18 EEST 2007 - Theodoros V. Kalamatianos <nyb@users.sourceforge.net>
 	* Release 0.0.2
 	* Fixed signed/unsigned comparisons in the error handling paths
