@@ -729,6 +729,10 @@ int main(int argc, char **argv)
 	}
 
 
+	/* Clear force feedback capability until it is properly implemented. */
+	/* See <linux/uinput.h> ("To write a force-feedback-capable driver ...") */
+	SET(obits[0], EV_FF, 0);
+
 	/* Prepare the output device */
 	OSET(UI_SET_PHYS, ophys);
 	OSETBIT(EV_EV,  UI_SET_EVBIT,  EV_MAX);
@@ -738,7 +742,7 @@ int main(int argc, char **argv)
 	OSETBIT(EV_MSC, UI_SET_MSCBIT, MSC_MAX);
 	OSETBIT(EV_LED, UI_SET_LEDBIT, LED_MAX);
 	OSETBIT(EV_SND, UI_SET_SNDBIT, SND_MAX);
-	OSETBIT(EV_FF,  UI_SET_FFBIT,  FF_MAX);
+/*	OSETBIT(EV_FF,  UI_SET_FFBIT,  FF_MAX); */
 	OSETBIT(EV_SW,  UI_SET_SWBIT,  SW_MAX);
 
 	ret = write(ofp, &uodev, sizeof(uodev));
