@@ -514,7 +514,7 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < EV_MAX; ++i) {
 		if GET(ibits[0], i) {
-			ioctl(ifp, EVIOCGBIT(i, LEN(long, KEY_MAX) * sizeof(long)), ibits[i]);
+			INQ(EVIOCGBIT(i, LEN(long, KEY_MAX) * sizeof(long)), ibits[i]);
 
 			if (i == EV_ABS) {
 				for (j = 0; j < ABS_MAX; ++j) {
