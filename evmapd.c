@@ -315,18 +315,18 @@ static int usage(int r)
 #if DEBUG
 #define INQ(i, m)		ret = ioctl(ifp, i, m); \
 				RETERN(ret < 0, "Unable to query input device %s (" #i ") [%i]", idev, __LINE__)
-#define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ") [%i]", odev, __LINE__)
+#define OSET(i, m)		ret = ioctl(ofp, i, m); \
+				RETERN(ret < 0, "Unable to configure output device %s (" #i ") [%i]", odev, __LINE__)
 #else
 #define INQ(i, m)		ret = ioctl(ifp, i, m); \
 				RETERN(ret < 0, "Unable to query input device %s (" #i ")", idev)
-#define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ")", odev)
+#define OSET(i, m)		ret = ioctl(ofp, i, m); \
+				RETERN(ret < 0, "Unable to configure output device %s (" #i ")", odev)
 #endif
 
 #define OSETBIT(t)		for (i = 0; i < t##_MAX; ++i) \
 					if GET(obits[EV_##t], i) \
-						OSET(SET_##t##BIT, i); \
+						OSET(UI_SET_##t##BIT, i); \
 
 #define NONEG(x)		if (x < 0) x = 0;
 
@@ -730,7 +730,7 @@ int main(int argc, char **argv)
 
 
 	/* Prepare the output device */
-	OSET(SET_PHYS, ophys);
+	OSET(UI_SET_PHYS, ophys);
 	OSETBIT(EV);
 	OSETBIT(KEY);
 	OSETBIT(REL);
@@ -743,7 +743,7 @@ int main(int argc, char **argv)
 
 	ret = write(ofp, &uodev, sizeof(uodev));
 	RETERR(ret < (int)(sizeof(uodev)), ret >= 0, EIO, "Unable to configure output device %s", odev);
-	OSET(DEV_CREATE, NULL);
+	OSET(UI_DEV_CREATE, NULL);
 
 
 	/* Daemon mode */
