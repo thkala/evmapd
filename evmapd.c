@@ -313,13 +313,13 @@ static int usage(int r)
 #define SET(c, b, v)		(c)[POS(c, b)] = (((c)[POS(c, b)] & ~(1 << OFF(c, b))) | (((v) > 0) << OFF(c, b)))
 
 #if DEBUG
-#define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ") [%i]", idev, __LINE__)
+#define INQ(i, m)		ret = ioctl(ifp, i, m); \
+				RETERN(ret < 0, "Unable to query input device %s (" #i ") [%i]", idev, __LINE__)
 #define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
 				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ") [%i]", odev, __LINE__)
 #else
-#define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ")", idev)
+#define INQ(i, m)		ret = ioctl(ifp, i, m); \
+				RETERN(ret < 0, "Unable to query input device %s (" #i ")", idev)
 #define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
 				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ")", odev)
 #endif
@@ -506,11 +506,11 @@ int main(int argc, char **argv)
 	memset(rbits, 0, sizeof(rbits));
 	memset(obits, 0, sizeof(obits));
 
-	INQ(GVERSION, &iver);
-	INQ(GID, &(uidev.id));
-	INQ(GNAME(sizeof(uidev.name)), uidev.name);
-	INQ(GPHYS(sizeof(iphys)), iphys);
-	INQ(GBIT(0, EV_MAX), ibits[0]);
+	INQ(EVIOCGVERSION, &iver);
+	INQ(EVIOCGID, &(uidev.id));
+	INQ(EVIOCGNAME(sizeof(uidev.name)), uidev.name);
+	INQ(EVIOCGPHYS(sizeof(iphys)), iphys);
+	INQ(EVIOCGBIT(0, EV_MAX), ibits[0]);
 
 	for (i = 1; i < EV_MAX; ++i) {
 		if GET(ibits[0], i) {
@@ -521,7 +521,7 @@ int main(int argc, char **argv)
 					if GET(ibits[i], j) {
 						struct input_absinfo abs;
 
-						INQ(GABS(j), &abs);
+						INQ(EVIOCGABS(j), &abs);
 						uidev.absmax[j] = abs.maximum;
 						uidev.absmin[j] = abs.minimum;
 						uidev.absfuzz[j] = abs.fuzz;
