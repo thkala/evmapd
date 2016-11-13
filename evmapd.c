@@ -324,9 +324,9 @@ static int usage(int r)
 				RETERN(ret < 0, "Unable to configure output device %s (" #i ")", odev)
 #endif
 
-#define OSETBIT(t)		for (i = 0; i < t##_MAX; ++i) \
-					if GET(obits[EV_##t], i) \
-						OSET(UI_SET_##t##BIT, i); \
+#define OSETBIT(get,set,max)		for (i = 0; i < max; ++i) \
+					if GET(obits[get], i) \
+						OSET(set, i); \
 
 #define NONEG(x)		if (x < 0) x = 0;
 
@@ -731,15 +731,15 @@ int main(int argc, char **argv)
 
 	/* Prepare the output device */
 	OSET(UI_SET_PHYS, ophys);
-	OSETBIT(EV);
-	OSETBIT(KEY);
-	OSETBIT(REL);
-	OSETBIT(ABS);
-	OSETBIT(MSC);
-	OSETBIT(LED);
-	OSETBIT(SND);
-	OSETBIT(FF);
-	OSETBIT(SW);
+	OSETBIT(EV_EV,  UI_SET_EVBIT,  EV_MAX);
+	OSETBIT(EV_KEY, UI_SET_KEYBIT, KEY_MAX);
+	OSETBIT(EV_REL, UI_SET_RELBIT, REL_MAX);
+	OSETBIT(EV_ABS, UI_SET_ABSBIT, ABS_MAX);
+	OSETBIT(EV_MSC, UI_SET_MSCBIT, MSC_MAX);
+	OSETBIT(EV_LED, UI_SET_LEDBIT, LED_MAX);
+	OSETBIT(EV_SND, UI_SET_SNDBIT, SND_MAX);
+	OSETBIT(EV_FF,  UI_SET_FFBIT,  FF_MAX);
+	OSETBIT(EV_SW,  UI_SET_SWBIT,  SW_MAX);
 
 	ret = write(ofp, &uodev, sizeof(uodev));
 	RETERR(ret < (int)(sizeof(uodev)), ret >= 0, EIO, "Unable to configure output device %s", odev);
