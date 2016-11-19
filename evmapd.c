@@ -313,20 +313,20 @@ static int usage(int r)
 #define SET(c, b, v)		(c)[POS(c, b)] = (((c)[POS(c, b)] & ~(1 << OFF(c, b))) | (((v) > 0) << OFF(c, b)))
 
 #if DEBUG
-#define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ") [%i]", idev, __LINE__)
-#define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ") [%i]", odev, __LINE__)
+#define INQ(i, m)		ret = ioctl(ifp, i, m); \
+				RETERN(ret < 0, "Unable to query input device %s (" #i ") [%i]", idev, __LINE__)
+#define OSET(i, m)		ret = ioctl(ofp, i, m); \
+				RETERN(ret < 0, "Unable to configure output device %s (" #i ") [%i]", odev, __LINE__)
 #else
-#define INQ(i, m)		ret = ioctl(ifp, EVIOC##i, m); \
-				RETERN(ret < 0, "Unable to query input device %s (EVIOC" #i ")", idev)
-#define OSET(i, m)		ret = ioctl(ofp, UI_##i, m); \
-				RETERN(ret < 0, "Unable to configure output device %s (UI" #i ")", odev)
+#define INQ(i, m)		ret = ioctl(ifp, i, m); \
+				RETERN(ret < 0, "Unable to query input device %s (" #i ")", idev)
+#define OSET(i, m)		ret = ioctl(ofp, i, m); \
+				RETERN(ret < 0, "Unable to configure output device %s (" #i ")", odev)
 #endif
 
-#define OSETBIT(t)		for (i = 0; i < t##_MAX; ++i) \
-					if GET(obits[EV_##t], i) \
-						OSET(SET_##t##BIT, i); \
+#define OSETBIT(get,set,max)		for (i = 0; i < max; ++i) \
+					if GET(obits[get], i) \
+						OSET(set, i); \
 
 #define NONEG(x)		if (x < 0) x = 0;
 
@@ -506,22 +506,22 @@ int main(int argc, char **argv)
 	memset(rbits, 0, sizeof(rbits));
 	memset(obits, 0, sizeof(obits));
 
-	INQ(GVERSION, &iver);
-	INQ(GID, &(uidev.id));
-	INQ(GNAME(sizeof(uidev.name)), uidev.name);
-	INQ(GPHYS(sizeof(iphys)), iphys);
-	INQ(GBIT(0, EV_MAX), ibits[0]);
+	INQ(EVIOCGVERSION, &iver);
+	INQ(EVIOCGID, &(uidev.id));
+	INQ(EVIOCGNAME(sizeof(uidev.name)), uidev.name);
+	INQ(EVIOCGPHYS(sizeof(iphys)), iphys);
+	INQ(EVIOCGBIT(0, EV_MAX), ibits[0]);
 
 	for (i = 1; i < EV_MAX; ++i) {
 		if GET(ibits[0], i) {
-			ioctl(ifp, EVIOCGBIT(i, LEN(long, KEY_MAX) * sizeof(long)), ibits[i]);
+			INQ(EVIOCGBIT(i, LEN(long, KEY_MAX) * sizeof(long)), ibits[i]);
 
 			if (i == EV_ABS) {
 				for (j = 0; j < ABS_MAX; ++j) {
 					if GET(ibits[i], j) {
 						struct input_absinfo abs;
 
-						INQ(GABS(j), &abs);
+						INQ(EVIOCGABS(j), &abs);
 						uidev.absmax[j] = abs.maximum;
 						uidev.absmin[j] = abs.minimum;
 						uidev.absfuzz[j] = abs.fuzz;
@@ -729,21 +729,25 @@ int main(int argc, char **argv)
 	}
 
 
+	/* Clear force feedback capability until it is properly implemented. */
+	/* See <linux/uinput.h> ("To write a force-feedback-capable driver ...") */
+	SET(obits[0], EV_FF, 0);
+
 	/* Prepare the output device */
-	OSET(SET_PHYS, ophys);
-	OSETBIT(EV);
-	OSETBIT(KEY);
-	OSETBIT(REL);
-	OSETBIT(ABS);
-	OSETBIT(MSC);
-	OSETBIT(LED);
-	OSETBIT(SND);
-	OSETBIT(FF);
-	OSETBIT(SW);
+	OSET(UI_SET_PHYS, ophys);
+	OSETBIT(EV_EV,  UI_SET_EVBIT,  EV_MAX);
+	OSETBIT(EV_KEY, UI_SET_KEYBIT, KEY_MAX);
+	OSETBIT(EV_REL, UI_SET_RELBIT, REL_MAX);
+	OSETBIT(EV_ABS, UI_SET_ABSBIT, ABS_MAX);
+	OSETBIT(EV_MSC, UI_SET_MSCBIT, MSC_MAX);
+	OSETBIT(EV_LED, UI_SET_LEDBIT, LED_MAX);
+	OSETBIT(EV_SND, UI_SET_SNDBIT, SND_MAX);
+/*	OSETBIT(EV_FF,  UI_SET_FFBIT,  FF_MAX); */
+	OSETBIT(EV_SW,  UI_SET_SWBIT,  SW_MAX);
 
 	ret = write(ofp, &uodev, sizeof(uodev));
 	RETERR(ret < (int)(sizeof(uodev)), ret >= 0, EIO, "Unable to configure output device %s", odev);
-	OSET(DEV_CREATE, NULL);
+	OSET(UI_DEV_CREATE, NULL);
 
 
 	/* Daemon mode */
