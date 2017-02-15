@@ -310,7 +310,7 @@ static int usage(int r)
 #define POS(c, b)		(b / (sizeof((c)[0]) * 8))
 #define OFF(c, b)		(b % (sizeof((c)[0]) * 8))
 #define GET(c, b)		((c[POS(c, b)] >> OFF(c, b)) & 1)
-#define SET(c, b, v)		(c)[POS(c, b)] = (((c)[POS(c, b)] & ~(1 << OFF(c, b))) | (((v) > 0) << OFF(c, b)))
+#define SET(c, b, v)		(c)[POS(c, b)] = (((c)[POS(c, b)] & ~(((typeof(*(c))) 1) << OFF(c, b))) | (((typeof(*(c))) ((v) > 0)) << OFF(c, b)))
 
 #if DEBUG
 #define INQ(i, m)		ret = ioctl(ifp, i, m); \
